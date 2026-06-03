@@ -30,11 +30,34 @@ docker run --rm --gpus all nvidia/cuda:12.5.1-base-ubuntu22.04 nvidia-smi
 ```bash
 make init
 # Edit .env if you need a different MODEL_ID, HF_TOKEN, or ports.
-make up
-make health
+make deploy
 ```
 
-Open the NeMo Guardrails test UI at <http://localhost:8001/>.
+The deploy target performs Docker/NVIDIA preflight checks, starts the stack, and waits for the guarded endpoint to become healthy. Open the NeMo Guardrails test UI at <http://localhost:8001/>.
+
+
+## Deploy now
+
+Run the full local deployment from the repository root:
+
+```bash
+make deploy
+```
+
+If you are deploying on a remote machine where `nvidia-smi` is not available on
+the host shell but Docker GPU passthrough is already configured, bypass only the
+host preflight with:
+
+```bash
+SKIP_GPU_CHECK=1 make deploy
+```
+
+If model download or warm-up takes longer than the default 15 minutes, increase
+the wait timeout:
+
+```bash
+TIMEOUT_SECONDS=1800 make deploy
+```
 
 ## Send a guarded chat request
 
@@ -87,8 +110,10 @@ containers.
 ## Operations
 
 ```bash
+make deploy   # preflight, start, and wait for the local NemoClaw stack
 make ps       # show containers
 make logs     # follow logs
+make health   # check vLLM and Guardrails endpoints
 make down     # stop the stack
 make test     # validate local YAML syntax
 ```

@@ -1,11 +1,14 @@
 COMPOSE ?= docker compose
 ENV_FILE ?= .env
 
-.PHONY: init up down logs ps health chat test
+.PHONY: init deploy up down logs ps health chat test
 
 init:
 	@test -f $(ENV_FILE) || cp .env.example $(ENV_FILE)
 	@echo "Created $(ENV_FILE). Edit it before starting the stack."
+
+deploy:
+	COMPOSE="$(COMPOSE)" ENV_FILE="$(ENV_FILE)" ./scripts/deploy.sh
 
 up:
 	$(COMPOSE) --env-file $(ENV_FILE) up -d --build
