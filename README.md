@@ -113,6 +113,17 @@ make compose-config
 
 The fallback renders `.env`/`.env.example` variable defaults, parses `docker-compose.yml`, and checks that the required `vllm` and `guardrails` services exist. `make test` runs this validation automatically before checking Guardrails YAML syntax.
 
+
+## Demo
+
+Run a demo from the repository root:
+
+```bash
+make demo
+```
+
+When the Docker stack is already running, this sends a live guarded chat request to NeMo Guardrails. In restricted environments where Docker or the services are unavailable, the demo still validates the compose/Guardrails configuration and prints an offline example request plus the expected guardrails flow.
+
 ## Send a guarded chat request
 
 ```bash
@@ -169,6 +180,7 @@ make deploy   # preflight, start, and wait for the local NemoClaw stack
 make ps       # show containers
 make logs     # follow logs
 make health   # check vLLM and Guardrails endpoints
+make demo     # run live guarded chat when available, otherwise offline demo
 make compose-config # validate/render compose config even when Docker CLI is unavailable
 make down     # stop the stack
 make test     # validate compose and local YAML syntax
