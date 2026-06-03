@@ -1,7 +1,7 @@
 COMPOSE ?= docker compose
 ENV_FILE ?= .env
 
-.PHONY: init install-docker deploy up down logs ps health chat test
+.PHONY: init install-docker deploy up down logs ps health chat compose-config test
 
 init:
 	@test -f $(ENV_FILE) || cp .env.example $(ENV_FILE)
@@ -28,10 +28,13 @@ ps:
 health:
 	./scripts/healthcheck.sh
 
+compose-config:
+	ENV_FILE="$(ENV_FILE)" ./scripts/compose-config.sh >/tmp/openclaw-compose.yml
+
 chat:
 	curl -sS http://localhost:$${GUARDRAILS_PORT:-8001}/v1/chat/completions \
 	  -H 'Content-Type: application/json' \
 	  -d '{"model":"local-nemotron","messages":[{"role":"user","content":"用繁體中文簡短介紹你自己。"}],"guardrails":{"config_id":"nemoclaw"}}' | python3 -m json.tool
 
-test:
+test: compose-config
 	ruby -e 'require "yaml"; Dir["configs/*/config.yml"].each { |path| YAML.load_file(path); puts "validated #{path}" }'

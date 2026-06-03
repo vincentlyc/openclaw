@@ -102,6 +102,17 @@ the wait timeout:
 TIMEOUT_SECONDS=1800 make deploy
 ```
 
+
+## Compose config validation without Docker CLI
+
+`docker compose config` is still the canonical validation when Docker CLI is installed. In restricted development containers where `docker` is unavailable, run this repo-local fallback instead:
+
+```bash
+make compose-config
+```
+
+The fallback renders `.env`/`.env.example` variable defaults, parses `docker-compose.yml`, and checks that the required `vllm` and `guardrails` services exist. `make test` runs this validation automatically before checking Guardrails YAML syntax.
+
 ## Send a guarded chat request
 
 ```bash
@@ -158,8 +169,9 @@ make deploy   # preflight, start, and wait for the local NemoClaw stack
 make ps       # show containers
 make logs     # follow logs
 make health   # check vLLM and Guardrails endpoints
+make compose-config # validate/render compose config even when Docker CLI is unavailable
 make down     # stop the stack
-make test     # validate local YAML syntax
+make test     # validate compose and local YAML syntax
 ```
 
 ## Notes
