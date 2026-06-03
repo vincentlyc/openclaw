@@ -25,6 +25,49 @@ Verify GPU container access before starting the stack:
 docker run --rm --gpus all nvidia/cuda:12.5.1-base-ubuntu22.04 nvidia-smi
 ```
 
+
+## 從 Terminal 安裝 Docker CLI 並建起服務（Ubuntu/Debian）
+
+如果 `docker --version` 或 `docker compose version` 顯示 `command not found`，先在主機 terminal 執行下列步驟。這個專案也提供一支 Ubuntu/Debian 用的安裝腳本，會安裝 Docker Engine、Docker CLI、Docker Compose v2 plugin，並在偵測到 NVIDIA GPU 時安裝 NVIDIA Container Toolkit。
+
+```bash
+cd /workspace/openclaw
+./scripts/install-docker-ubuntu.sh
+# 或：make install-docker
+```
+
+安裝後若腳本提示已把使用者加入 `docker` group，請重新登入 terminal，或立即執行：
+
+```bash
+newgrp docker
+```
+
+接著確認 Docker CLI、Compose v2 與 GPU passthrough 都可用：
+
+```bash
+docker --version
+docker compose version
+docker run --rm hello-world
+docker run --rm --gpus all nvidia/cuda:12.5.1-base-ubuntu22.04 nvidia-smi
+```
+
+最後從 repo root 建立 `.env` 並啟動 NemoClaw：
+
+```bash
+make init
+# 如果要改模型、HF_TOKEN、port，先編輯 .env
+make deploy
+make health
+```
+
+若主機 shell 沒有 `nvidia-smi`，但你已確認 Docker GPU passthrough 可用，可以只略過 host GPU preflight：
+
+```bash
+SKIP_GPU_CHECK=1 make deploy
+```
+
+> 注意：`./scripts/install-docker-ubuntu.sh` 需要 `sudo` 權限，且只支援 Ubuntu/Debian。其他 Linux 發行版請依照 Docker 官方文件安裝 Docker Engine、Docker Compose v2 plugin，以及 NVIDIA Container Toolkit。
+
 ## Quick start
 
 ```bash
@@ -110,6 +153,7 @@ containers.
 ## Operations
 
 ```bash
+make install-docker # install Docker CLI/Compose and NVIDIA Container Toolkit on Ubuntu/Debian
 make deploy   # preflight, start, and wait for the local NemoClaw stack
 make ps       # show containers
 make logs     # follow logs
