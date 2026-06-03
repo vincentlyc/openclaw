@@ -1,0 +1,70 @@
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: nemoclaw-vllm
+    restart: unless-stopped
+    ipc: host
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    command:
+      - --model
+      - ${MODEL_ID:-nvidia/Llama-3.1-Nemotron-Nano-8B-v1}
+      - --served-model-name
+      - ${SERVED_MODEL_NAME:-local-nemotron}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --tensor-parallel-size
+      - ${TENSOR_PARALLEL_SIZE:-1}
+      - --gpu-memory-utilization
+      - ${GPU_MEMORY_UTILIZATION:-0.90}
+      - --max-model-len
+      - ${MAX_MODEL_LEN:-8192}
+      - --trust-remote-code
+    ports:
+      - "${VLLM_PORT:-8000}:8000"
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "python3 - <<'PY'\nimport urllib.request\nurllib.request.urlopen('http://127.0.0.1:8000/v1/models', timeout=5)\nPY"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  guardrails:
+    build:
+      context: .
+      dockerfile: Dockerfile.nemoguardrails
+    container_name: nemoclaw-guardrails
+    restart: unless-stopped
+    depends_on:
+      vllm:
+        condition: service_healthy
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-EMPTY}
+      NEMO_GUARDRAILS_SERVER_ENABLE_CORS: "true"
+      NEMO_GUARDRAILS_SERVER_ALLOWED_ORIGINS: "*"
+    ports:
+      - "${GUARDRAILS_PORT:-8001}:8000"
+    volumes:
+      - ./configs:/config:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python3 - <<'PY'\nimport urllib.request\nurllib.request.urlopen('http://127.0.0.1:8000/v1/rails/configs', timeout=5)\nPY"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  huggingface-cache:
