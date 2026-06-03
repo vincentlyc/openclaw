@@ -25,6 +25,24 @@ Verify GPU container access before starting the stack:
 docker run --rm --gpus all nvidia/cuda:12.5.1-base-ubuntu22.04 nvidia-smi
 ```
 
+## Windows WSL2 without Docker Desktop
+
+For Windows users who want to run OpenClaw without Docker Desktop, use Docker Engine directly inside WSL2 Ubuntu.
+
+See:
+
+```text
+docs/windows-wsl-docker-engine.md
+```
+
+This setup was validated with:
+
+* Windows 11
+* WSL2 Ubuntu 24.04
+* Docker Engine installed inside WSL
+* NVIDIA Container Toolkit
+* RTX 3090
+
 
 ## 從 Terminal 安裝 Docker CLI 並建起服務（Ubuntu/Debian）
 
