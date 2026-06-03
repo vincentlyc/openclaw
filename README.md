@@ -114,6 +114,15 @@ make compose-config
 The fallback renders `.env`/`.env.example` variable defaults, parses `docker-compose.yml`, and checks that the required `vllm` and `guardrails` services exist. `make test` runs this validation automatically before checking Guardrails YAML syntax.
 
 
+
+`make health` is developer-friendly by default: if live services are not running, it falls back to offline compose/Guardrails config checks and exits successfully. Use strict mode when you need a live endpoint failure to fail the command:
+
+```bash
+OFFLINE_OK=0 make health
+```
+
+`make chat` behaves the same way: it sends a live guarded chat request when Guardrails is reachable, and otherwise prints an offline OpenAI-compatible demo response so the command remains runnable in restricted sandboxes.
+
 ## Demo
 
 Run a demo from the repository root:
@@ -179,7 +188,8 @@ make install-docker # install Docker CLI/Compose and NVIDIA Container Toolkit on
 make deploy   # preflight, start, and wait for the local NemoClaw stack
 make ps       # show containers
 make logs     # follow logs
-make health   # check vLLM and Guardrails endpoints
+make health   # live health if available; otherwise offline config health
+make chat     # live guarded chat if available; otherwise offline demo response
 make demo     # run live guarded chat when available, otherwise offline demo
 make compose-config # validate/render compose config even when Docker CLI is unavailable
 make down     # stop the stack
